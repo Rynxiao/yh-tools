@@ -1,12 +1,12 @@
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const webpack = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
 const webpackHotMiddleware = require('webpack-hot-middleware');
-
 
 const indexRouter = require('./routes/index');
 const apiRouter = require('./routes/api');
@@ -18,8 +18,9 @@ const app = express();
 const webpackConfig = require('./build/webpack.dev.config');
 
 const compiler = webpack(webpackConfig);
+const httpRequestLog = fs.createWriteStream(path.join(__dirname, 'http.log'), { flags: 'a' });
 
-app.use(logger('dev'));
+app.use(logger('dev', { stream: httpRequestLog }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());

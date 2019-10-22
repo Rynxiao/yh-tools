@@ -1,42 +1,16 @@
 #!/usr/bin/env node
 
-/**
- * Module dependencies.
- */
-
 const debug = require('debug')('annie-web:server');
 const http = require('http');
+const WebSocketServer = require('websocket').server;
+const querystring = require('querystring');
 const app = require('../app');
 const CONFIG = require('../build/config');
-
-/**
- * Get port from environment and store in Express.
- */
-
-const port = normalizePort(process.env.PORT || CONFIG.PORT);
-app.set('port', port);
-
-/**
- * Create HTTP server.
- */
-
-const server = http.createServer(app);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
-
-/**
- * Normalize a port into a number, string, or false.
- */
 
 function normalizePort(val) {
   const port = parseInt(val, 10);
 
+  // eslint-disable-next-line no-restricted-globals
   if (isNaN(port)) {
     // named pipe
     return val;
@@ -50,9 +24,18 @@ function normalizePort(val) {
   return false;
 }
 
-/**
- * Event listener for HTTP server "error" event.
- */
+const port = normalizePort(process.env.PORT || CONFIG.PORT);
+app.set('port', port);
+
+const server = http.createServer(app);
+
+function onListening() {
+  const addr = server.address();
+  const bind = typeof addr === 'string'
+    ? `pipe ${addr}`
+    : `port ${addr.port}`;
+  debug(`Listening on ${bind}`);
+}
 
 function onError(error) {
   if (error.syscall !== 'listen') {
@@ -78,14 +61,31 @@ function onError(error) {
   }
 }
 
-/**
- * Event listener for HTTP server "listening" event.
- */
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
 
-function onListening() {
-  const addr = server.address();
-  const bind = typeof addr === 'string'
-    ? `pipe ${addr}`
-    : `port ${addr.port}`;
-  debug(`Listening on ${bind}`);
-}
+const clientsMap = new Map();
+const wsServer = new WebSocketServer({
+  httpServer: server,
+  autoAcceptConnections: false,
+});
+
+wsServer.on('request', (request) => {
+  const connection = request.accept('echo-protocol', request.origin);
+  const queryStrings = querystring.parse(request.resource.replace(/(^\/|\?)/g, ''));
+  console.log(queryStrings);
+  if (queryStrings) {
+    const { id } = queryStrings;
+    clientsMap.set(id, connection);
+  }
+
+  connection.on('message', (message) => {
+    const data = message.utf8Data;
+    console.log(data);
+    const client = clientsMap.get(JSON.parse(data).client_id);
+    if (client) {
+      client.send(data);
+    }
+  });
+});

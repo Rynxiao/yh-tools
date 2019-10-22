@@ -1,5 +1,6 @@
 const axios = require('axios');
 const ejs = require('ejs');
+const uuid1 = require('uuid/v1');
 const CONFIG = require('../build/config');
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -54,6 +55,7 @@ function parseSiteStringToJson(siteString, url) {
       const type = trim(item.match(/Type:\s*(.*)?\n/)[1]);
       const streams = item.match(/Streams:\s*((.|\n)*)/)[1];
       const siteInfo = {};
+      siteInfo.id = uuid1();
       siteInfo.key = `${index}`;
       siteInfo.site = site;
       siteInfo.title = title;
@@ -68,6 +70,7 @@ function parseSiteStringToJson(siteString, url) {
           size = trim(size.replace(/\(.*?\)/, ''));
           let downloadUrl = trim(stream.match(/download with:\s*(.*)?\n/)[1]);
           downloadUrl = downloadUrl.replace('...', url);
+          streamInfo.id = uuid1();
           streamInfo.key = `${index}${childIndex}`;
           streamInfo.quality = quality;
           streamInfo.size = size;
