@@ -4,9 +4,10 @@ import {
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import http from '../api/http';
-import { clientId } from '../utils';
+import { clientId, getVideoInfoInMap } from '../utils';
 import WebSocketClient from '../utils/websocket.client';
 import './styles/list.less';
+import ProgressBar from './progress';
 
 const columns = [
   {
@@ -26,20 +27,35 @@ class List extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      visible: true,
+      visible: false,
+      progressBarMaps: {},
     };
   }
 
-  async componentDidMount() {
-    await WebSocketClient.connect((event) => {
-      console.log(`[message] Data received from server: ${event.data}`);
-    });
+  async componentDidUpdate(prevProps) {
+    const { list } = this.props;
+    if (list.length !== prevProps.list.length) {
+      await WebSocketClient.connect((event) => {
+        // console.log(`[message] Data received from server: ${event.data}`);
+        const data = JSON.parse(event.data);
+        const { progress } = data;
+        const pId = data.parent_id;
+        const cId = data.child_id;
+        const id = `${pId}-${cId}`;
+        const videoInfo = getVideoInfoInMap(list, id);
+        const progressBarItem = { info: videoInfo, progress: parseInt(progress, 10) };
+        this.setState((state) => ({
+          progressBarMaps: {
+            ...state.progressBarMaps,
+            ...{ [id]: progressBarItem },
+          },
+        }));
+      });
+    }
   }
 
   onDownloadClick = (stream, parentId) => {
     this.setState({ visible: true });
-    console.log(stream);
-    console.log(parentId);
     const urlArr = stream.url.split(/\s+/);
     const code = urlArr[2];
     const url = urlArr[3];
@@ -57,7 +73,6 @@ class List extends Component {
   };
 
   expandedRowRender = (row) => {
-    console.log(row);
     const childColumns = [
       { title: '大小', dataIndex: 'size' },
       { title: '清晰度', dataIndex: 'quality' },
@@ -91,9 +106,14 @@ class List extends Component {
     this.setState({ visible: false });
   };
 
+  onToggleDownloadPopup = () => {
+    const { visible } = this.state;
+    this.setState({ visible: !visible });
+  };
+
   render() {
     const { loading, list } = this.props;
-    const { visible } = this.state;
+    const { visible, progressBarMaps } = this.state;
 
     return (
       <div className="pd-t-50">
@@ -121,13 +141,18 @@ class List extends Component {
             className="collapse-btn"
             role="button"
             tabIndex="0"
-            onClick={this.onCloseDownloadPopup}
+            onClick={this.onToggleDownloadPopup}
           >
             <Icon type="unordered-list" />
           </div>
-          <p>Some contents...</p>
-          <p>Some contents...</p>
-          <p>Some contents...</p>
+          {
+            Object.keys(progressBarMaps).map((id) => {
+              const { info, progress } = progressBarMaps[id];
+              return (
+                <ProgressBar key={id} filename={info} progress={progress} />
+              );
+            })
+          }
         </Drawer>
       </div>
     );

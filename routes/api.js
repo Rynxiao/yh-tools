@@ -28,18 +28,18 @@ const getList = (url) => {
 };
 
 router.get('/list', (req, res) => {
-  const url = req.query.request_url;
-  const result = getList(url);
-
-  if (result.hasError) {
-    res.json({ code: 400, msg: result.msg });
-  } else {
-    res.json({
-      code: 200,
-      data: { list: result.list },
-    });
-  }
-  // res.json(list);
+  // const url = req.query.request_url;
+  // const result = getList(url);
+  //
+  // if (result.hasError) {
+  //   res.json({ code: 400, msg: result.msg });
+  // } else {
+  //   res.json({
+  //     code: 200,
+  //     data: { list: result.list },
+  //   });
+  // }
+  res.json(list);
 });
 
 router.get('/download', (req, res) => {

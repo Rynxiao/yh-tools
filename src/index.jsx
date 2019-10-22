@@ -26,20 +26,6 @@ class App extends Component {
     message.error(error);
   };
 
-  buildList = (data) => {
-    const { list } = data;
-    return list.reduce((res, item) => {
-      const listItem = {};
-      listItem.key = item.key;
-      listItem.site = item.site;
-      listItem.title = item.title;
-      listItem.type = item.type;
-      listItem.children = item.stream;
-      res.push(listItem);
-      return res;
-    }, []);
-  };
-
   onSearch = (searchValue) => {
     this.setState({ loading: true });
     http.get('list', { request_url: searchValue }).then((res) => {
