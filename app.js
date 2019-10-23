@@ -18,9 +18,8 @@ const app = express();
 const webpackConfig = require('./build/webpack.dev.config');
 
 const compiler = webpack(webpackConfig);
-const httpRequestLog = fs.createWriteStream(path.join(__dirname, 'http.log'), { flags: 'a' });
 
-app.use(logger('dev', { stream: httpRequestLog }));
+app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
