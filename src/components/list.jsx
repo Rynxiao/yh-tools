@@ -4,7 +4,7 @@ import {
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import http from '../api/http';
-import { clientId, getVideoInfoInMap } from '../utils';
+import { clientId, getVideoInfoByConnectionId, getVideoInfoInMap } from '../utils';
 import WebSocketClient from '../utils/websocket.client';
 import './styles/list.less';
 import ProgressBar from './progress';
@@ -37,21 +37,43 @@ class List extends Component {
     if (list.length !== prevProps.list.length) {
       await WebSocketClient.connect((event) => {
         const data = JSON.parse(event.data);
-        const { progress } = data;
-        const pId = data.parent_id;
-        const cId = data.child_id;
-        const id = `${pId}-${cId}`;
-        const videoInfo = getVideoInfoInMap(list, id);
-        const progressBarItem = { info: videoInfo, progress: parseInt(progress, 10) };
-        this.setState((state) => ({
-          progressBarMaps: {
-            ...state.progressBarMaps,
-            ...{ [id]: progressBarItem },
-          },
-        }));
+        if (data.event === 'close') {
+          this.updateCloseStatusOfProgressBar(list, data);
+        } else {
+          this.generateProgressBarList(list, data);
+        }
       });
     }
   }
+
+  updateCloseStatusOfProgressBar = (list, data) => {
+    const id = data.connectionId;
+    this.setState((state) => {
+      const progressBarItem = state.progressBarMaps[id];
+      progressBarItem.status = 'exception';
+      return {
+        progressBarMaps: {
+          ...state.progressBarMaps,
+          ...{ [id]: progressBarItem },
+        },
+      };
+    });
+  };
+
+  generateProgressBarList = (list, data) => {
+    const { progress } = data;
+    const pId = data.parent_id;
+    const cId = data.child_id;
+    const id = `${pId}-${cId}`;
+    const videoInfo = getVideoInfoInMap(list, id);
+    const progressBarItem = { info: videoInfo, progress: parseInt(progress, 10) };
+    this.setState((state) => ({
+      progressBarMaps: {
+        ...state.progressBarMaps,
+        ...{ [id]: progressBarItem },
+      },
+    }));
+  };
 
   onDownloadClick = (stream, parentId) => {
     this.setState({ visible: true });
@@ -110,6 +132,15 @@ class List extends Component {
     this.setState({ visible: !visible });
   };
 
+  onStopDownloading = (connectionId) => {
+    http.get(`close/${connectionId}/${clientId}`);
+  };
+
+  onRefresh = (connnectionId) => {
+    const videoInfo = getVideoInfoByConnectionId(connnectionId);
+    this.onDownloadClick(videoInfo.stream, videoInfo.parent_id);
+  };
+
   render() {
     const { loading, list } = this.props;
     const { visible, progressBarMaps } = this.state;
@@ -146,9 +177,16 @@ class List extends Component {
           </div>
           {
             Object.keys(progressBarMaps).map((id) => {
-              const { info, progress } = progressBarMaps[id];
+              const { info, progress, status } = progressBarMaps[id];
               return (
-                <ProgressBar key={id} filename={info} progress={progress} />
+                <ProgressBar
+                  key={id}
+                  filename={info}
+                  progress={progress}
+                  status={status}
+                  onClose={() => this.onStopDownloading(id)}
+                  onRefresh={() => this.onRefresh(id)}
+                />
               );
             })
           }

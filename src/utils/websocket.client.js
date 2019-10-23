@@ -15,7 +15,7 @@ export default {
   async connect(onmessage, onerror) {
     const socket = this.getSocket();
     return new Promise((resolve) => {
-      const onError = (error) => console.log(`[error] ${error.message}`);
+      const onError = (error) => console.log(`[browser ws client error] ${error.message}`);
 
       socket.onopen = () => {
         socket.onmessage = onmessage;
@@ -24,9 +24,9 @@ export default {
 
       socket.onclose = (event) => {
         if (event.wasClean) {
-          console.log(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+          console.log(`[browser ws client close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
         } else {
-          console.log('[close] Connection died');
+          console.log('[browser ws client close] Connection died');
         }
       };
 

@@ -2,10 +2,9 @@
 
 const debug = require('debug')('annie-web:server');
 const http = require('http');
-const WebSocketServer = require('websocket').server;
-const querystring = require('querystring');
 const app = require('../app');
 const CONFIG = require('../build/config');
+const WsServer = require('../utils/websocket.server');
 
 function normalizePort(val) {
   const port = parseInt(val, 10);
@@ -65,27 +64,4 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
-const clientsMap = new Map();
-const wsServer = new WebSocketServer({
-  httpServer: server,
-  autoAcceptConnections: false,
-});
-
-wsServer.on('request', (request) => {
-  const connection = request.accept('echo-protocol', request.origin);
-  const queryStrings = querystring.parse(request.resource.replace(/(^\/|\?)/g, ''));
-  console.log(queryStrings);
-  if (queryStrings) {
-    const { id } = queryStrings;
-    clientsMap.set(id, connection);
-  }
-
-  connection.on('message', (message) => {
-    const data = message.utf8Data;
-    console.log(data);
-    const client = clientsMap.get(JSON.parse(data).client_id);
-    if (client) {
-      client.send(data);
-    }
-  });
-});
+WsServer.connectToServer(server);

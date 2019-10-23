@@ -2,12 +2,18 @@
 
 .progress-bar {
   margin-bottom: 10px;
-  .close-btn {
-    color: @progress-bar-color;
+  .btn {
     cursor: pointer;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+  }
+  .close-btn {
+    color: @progress-bar-color;
+  }
+  .refresh-btn {
+    color: @progress-success-bar-color;
+    font-weight: bold;
   }
 }

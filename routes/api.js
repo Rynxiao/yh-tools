@@ -4,6 +4,7 @@ const WebSocketClient = require('websocket').client;
 const { parseSiteStringToJson } = require('../utils');
 const list = require('../mock/list');
 const CONFIG = require('../build/config');
+const WsClient = require('../utils/websocket.client');
 
 const router = express.Router();
 
@@ -42,37 +43,42 @@ router.get('/list', (req, res) => {
   res.json(list);
 });
 
-router.get('/download', (req, res) => {
+router.get('/download', async (req, res) => {
   const { code } = req.query;
   const url = req.query.request_url;
   const clientId = req.query.client_id;
   const parentId = req.query.parent_id;
   const childId = req.query.child_id;
+  const connectionId = `${parentId}-${childId}`;
 
-  const client = new WebSocketClient();
-  client.on('connectFailed', (error) => {
-    console.log(`Connect Error: ${error.toString()}`);
-  });
-
-  client.on('connect', (ws) => {
+  const ws = await WsClient.connect(connectionId);
+  function makeProgress() {
     let progress = 0;
     const inter = setInterval(() => {
       if (progress >= 100) {
         progress = 100;
         clearInterval(inter);
       }
-      ws.sendUTF(JSON.stringify({
+      WsClient.send(ws, {
         progress,
         parent_id: parentId,
         child_id: childId,
         client_id: clientId,
-      }));
-      progress += Math.random() * 2 + 1;
+      });
+      progress += Math.random() * 2 + 5;
     }, 300);
-  });
-  client.connect(`ws://localhost:${CONFIG.PORT}`, 'echo-protocol');
+  }
 
-  res.json({ code, url });
+  makeProgress();
+  res.json({ code: 200 });
+});
+
+router.get('/close/:id/:browser_client_id', (req, res) => {
+  const connectionId = req.params.id;
+  const browserClientId = req.params.browser_client_id;
+  console.log(`[server router] /close/${connectionId}/${browserClientId}`);
+  WsClient.close(browserClientId, connectionId, 'stop by manully');
+  res.json({ code: 200 });
 });
 
 module.exports = router;
