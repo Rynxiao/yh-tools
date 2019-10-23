@@ -36,7 +36,6 @@ class List extends Component {
     const { list } = this.props;
     if (list.length !== prevProps.list.length) {
       await WebSocketClient.connect((event) => {
-        // console.log(`[message] Data received from server: ${event.data}`);
         const data = JSON.parse(event.data);
         const { progress } = data;
         const pId = data.parent_id;
