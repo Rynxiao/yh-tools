@@ -1,7 +1,7 @@
 # yh-tools
 some useful tools for working and life
 
-## Annie Download
+## Annie Downloader
 
 Using [Annie](https://github.com/iawia002/annie) to download resources, will download video file to /Downloads folder by default.
 
