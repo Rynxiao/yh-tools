@@ -42,6 +42,8 @@ const RedoBtn = ({ setClose, onRefresh }) => (
 
 const ProgressBar = ({
   progress,
+  speed,
+  remain,
   status,
   filename,
   onClose,
@@ -59,6 +61,16 @@ const ProgressBar = ({
             : <RedoBtn setClose={setClose} onRefresh={onRefresh} /> }
         </Col>
       </Row>
+      <div className="extra-info">
+        <span>
+          下载速度：
+          <span className="speed">{speed}</span>
+        </span>
+        <span>
+          预计完成还需要：
+          <span className="time">{remain}</span>
+        </span>
+      </div>
     </div>
   );
 };
@@ -67,11 +79,15 @@ export default ProgressBar;
 
 ProgressBar.defaultProps = {
   status: '',
+  speed: '0.00 MiB/s',
+  remain: '0时0分0秒',
 };
 
 ProgressBar.propTypes = {
   filename: PropTypes.string.isRequired,
   progress: PropTypes.number.isRequired,
+  speed: PropTypes.string,
+  remain: PropTypes.string,
   onClose: PropTypes.func.isRequired,
   onRefresh: PropTypes.func.isRequired,
   status: PropTypes.string,

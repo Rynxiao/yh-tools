@@ -50,23 +50,31 @@ class List extends Component {
     const id = data.connectionId;
     this.setState((state) => {
       const progressBarItem = state.progressBarMaps[id];
-      progressBarItem.status = 'exception';
-      return {
-        progressBarMaps: {
-          ...state.progressBarMaps,
-          ...{ [id]: progressBarItem },
-        },
-      };
+      if (progressBarItem) {
+        progressBarItem.status = 'exception';
+        return {
+          progressBarMaps: {
+            ...state.progressBarMaps,
+            ...{ [id]: progressBarItem },
+          },
+        };
+      }
+      return state;
     });
   };
 
   generateProgressBarList = (list, data) => {
-    const { progress } = data;
+    const { progress, speed, remain } = data;
     const pId = data.parent_id;
     const cId = data.child_id;
     const id = `${pId}-${cId}`;
     const videoInfo = getVideoInfoInMap(list, id);
-    const progressBarItem = { info: videoInfo, progress: parseInt(progress, 10) };
+    const progressBarItem = {
+      info: videoInfo,
+      progress: parseFloat(progress),
+      speed,
+      remain,
+    };
     this.setState((state) => ({
       progressBarMaps: {
         ...state.progressBarMaps,
@@ -177,12 +185,16 @@ class List extends Component {
           </div>
           {
             Object.keys(progressBarMaps).map((id) => {
-              const { info, progress, status } = progressBarMaps[id];
+              const {
+                info, progress, status, speed, remain,
+              } = progressBarMaps[id];
               return (
                 <ProgressBar
                   key={id}
                   filename={info}
                   progress={progress}
+                  speed={speed}
+                  remain={remain}
                   status={status}
                   onClose={() => this.onStopDownloading(id)}
                   onRefresh={() => this.onRefresh(id)}

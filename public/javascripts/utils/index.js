@@ -1,7 +1,7 @@
 const axios = require('axios');
 const ejs = require('ejs');
 const uuid1 = require('uuid/v1');
-const CONFIG = require('../build/config');
+const CONFIG = require('../../../build/config');
 
 const isDev = process.env.NODE_ENV === 'development';
 

@@ -1,5 +1,5 @@
 const WebSocketClient = require('websocket').client;
-const CONFIG = require('../build/config');
+const CONFIG = require('../../../build/config');
 
 const connectionMaps = new Map();
 const wsMaps = new Map();

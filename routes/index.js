@@ -1,5 +1,5 @@
 const express = require('express');
-const { render } = require('../utils');
+const { render } = require('../public/javascripts/utils');
 
 const router = express.Router();
 

@@ -4,7 +4,7 @@ const debug = require('debug')('annie-web:server');
 const http = require('http');
 const app = require('../app');
 const CONFIG = require('../build/config');
-const WsServer = require('../utils/websocket.server');
+const WsServer = require('../public/javascripts/utils/websocket.server');
 
 function normalizePort(val) {
   const port = parseInt(val, 10);

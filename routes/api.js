@@ -1,83 +1,54 @@
 const express = require('express');
-const shell = require('shelljs');
-const WebSocketClient = require('websocket').client;
-const { parseSiteStringToJson } = require('../utils');
-const list = require('../mock/list');
-const CONFIG = require('../build/config');
-const WsClient = require('../utils/websocket.client');
+const WsClient = require('../public/javascripts/utils/websocket.client');
+const AnnieDownloader = require('../public/javascripts/annie');
 
 const router = express.Router();
 
-const getList = (url) => {
-  console.log('request url', url);
-  const annieProcess = shell.exec(`annie -i -p ${decodeURIComponent(url)}`, { silent: true });
-  const { code, stdout, stderr } = annieProcess;
-  console.log('code', code);
-  console.log('stdout', stdout);
-  console.log('stderr', stderr);
+router.get('/list', async (req, res) => {
+  const url = req.query.request_url;
+  const result = await AnnieDownloader.getVideoList(url);
+  console.log(`[server request list] request result ${JSON.stringify(result)}`);
 
-  if (stderr) {
-    return { hasError: true, msg: stderr };
+  if (result.hasError) {
+    res.json({ code: 400, msg: result.msg });
+  } else {
+    res.json({
+      code: 200,
+      data: { list: result.list },
+    });
   }
-
-  if (code === 0) {
-    const siteJson = parseSiteStringToJson(stdout, url);
-    console.log(JSON.stringify(siteJson));
-    return { hasError: false, list: siteJson };
-  }
-  return { hasError: true, msg: stdout };
-};
-
-router.get('/list', (req, res) => {
-  // const url = req.query.request_url;
-  // const result = getList(url);
-  //
-  // if (result.hasError) {
-  //   res.json({ code: 400, msg: result.msg });
-  // } else {
-  //   res.json({
-  //     code: 200,
-  //     data: { list: result.list },
-  //   });
-  // }
-  res.json(list);
 });
 
 router.get('/download', async (req, res) => {
   const { code } = req.query;
-  const url = req.query.request_url;
+  const url = req.query.download_url;
   const clientId = req.query.client_id;
   const parentId = req.query.parent_id;
   const childId = req.query.child_id;
   const connectionId = `${parentId}-${childId}`;
 
-  const ws = await WsClient.connect(connectionId);
-  function makeProgress() {
-    let progress = 0;
-    const inter = setInterval(() => {
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(inter);
-      }
-      WsClient.send(ws, {
-        progress,
-        parent_id: parentId,
-        child_id: childId,
-        client_id: clientId,
-      });
-      progress += Math.random() * 2 + 5;
-    }, 300);
-  }
+  const params = {
+    code,
+    url,
+    parent_id: parentId,
+    child_id: childId,
+    client_id: clientId,
+  };
 
-  makeProgress();
-  res.json({ code: 200 });
+  const flag = await AnnieDownloader.download(connectionId, params);
+  if (flag) {
+    await res.json({ code: 200 });
+  } else {
+    await res.json({ code: 500, msg: 'download error' });
+  }
 });
 
 router.get('/close/:id/:browser_client_id', (req, res) => {
   const connectionId = req.params.id;
   const browserClientId = req.params.browser_client_id;
   console.log(`[server router] /close/${connectionId}/${browserClientId}`);
-  WsClient.close(browserClientId, connectionId, 'stop by manully');
+  AnnieDownloader.stop(connectionId);
+  WsClient.close(browserClientId, connectionId, 'stop by manually');
   res.json({ code: 200 });
 });
 

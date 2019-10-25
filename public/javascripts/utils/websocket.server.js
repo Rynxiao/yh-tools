@@ -33,7 +33,7 @@ function getConnectionAndSendProgressToClient(data, clientId) {
     browserClient.send(JSON.stringify(data));
     if (data.progress >= 100) {
       console.log(`[ws server] file has been download successfully, progress is ${data.progress}`);
-      console.log(`[ws server] ready to disconnect with server client id is ${serverClientId}`);
+      console.log(`[ws server] server client ${serverClientId} ready to disconnect`);
       clientsMap.delete(serverClientId);
       serverClient.send(JSON.stringify({ connectionId: serverClientId, event: 'complete' }));
       serverClient.close('download completed');
@@ -46,8 +46,12 @@ function closeConnection(clientId, data) {
   const browserClient = clientsMap.get(data.browser_client_id);
   console.log(`[ws server] close client ${clientId}`);
   console.log(`[ws server] send message back to browser client ${data.browser_client_id}`);
-  if (client && browserClient) {
+
+  if (browserClient) {
     browserClient.send(JSON.stringify(data));
+  }
+
+  if (client) {
     clientsMap.delete(clientId);
     client.close(data.reason);
   }
