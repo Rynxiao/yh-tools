@@ -1,45 +1,4 @@
-const axios = require('axios');
-const ejs = require('ejs');
 const uuid1 = require('uuid/v1');
-const CONFIG = require('../../../build/config');
-
-const isDev = process.env.NODE_ENV === 'development';
-
-function getTemplateString(filename) {
-  return new Promise((resolve, reject) => {
-    axios.get(`http://localhost:${CONFIG.PORT}${CONFIG.PATH.PUBLIC_PATH}${CONFIG.DIR.VIEW}/${filename}`)
-      .then((res) => {
-        resolve(res.data);
-      })
-      .catch(reject);
-  });
-}
-
-/**
- * render 方法
- * @param res express 的 res 对象
- * @param filename 需要渲染的文件名
- * @param data ejs 渲染时需要用到的附加对象
- * @returns {Promise<*|undefined>}
- */
-async function render(res, filename, data) {
-  // 文件后缀
-  const ext = '.ejs';
-  let fName = filename;
-  fName = fName.indexOf(ext) > -1 ? fName.split(ext)[0] : fName;
-  try {
-    if (isDev) {
-      const template = await getTemplateString(`${fName}.ejs`);
-      const html = ejs.render(template, data);
-      res.send(html);
-    } else {
-      res.render(fName, data);
-    }
-    return Promise.resolve();
-  } catch (e) {
-    return Promise.reject(e);
-  }
-}
 
 function trim(str) {
   return str.replace(/^\s*/, '').replace(/\s*$/, '');
@@ -84,7 +43,43 @@ function parseSiteStringToJson(siteString, url) {
   return data;
 }
 
+function debounce(func, wait, immediate) {
+  let timeout;
+  return (...args) => {
+    const context = this;
+    const later = () => {
+      timeout = null;
+      if (!immediate) func.apply(context, args);
+    };
+    const callNow = immediate && !timeout;
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+    if (callNow) func.apply(context, args);
+  };
+}
+
+function throttle(func, wait, mustRun) {
+  let timeout;
+  let startTime = new Date();
+
+  return (...args) => {
+    const context = this;
+    const curTime = new Date();
+
+    clearTimeout(timeout);
+    // 如果达到了规定的触发时间间隔，触发 handler
+    if (curTime - startTime >= mustRun) {
+      func.apply(context, args);
+      startTime = curTime;
+      // 没达到触发间隔，重新设定定时器
+    } else {
+      timeout = setTimeout(func, wait);
+    }
+  };
+}
+
 module.exports = {
   parseSiteStringToJson,
-  render,
+  throttle,
+  debounce,
 };

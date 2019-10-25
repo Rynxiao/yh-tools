@@ -83,17 +83,19 @@ class List extends Component {
     }));
   };
 
-  onDownloadClick = (stream, parentId) => {
+  onDownloadClick = (stream, row) => {
     this.setState({ visible: true });
     const urlArr = stream.url.split(/\s+/);
     const code = urlArr[2];
     const url = urlArr[3];
     const childId = stream.id;
+    const filename = `${row.title}-${stream.quality}`;
     http.get(
       'download',
       {
         code,
-        parent_id: parentId,
+        filename,
+        parent_id: row.id,
         child_id: childId,
         download_url: url,
         client_id: clientId,
@@ -114,7 +116,7 @@ class List extends Component {
             type="primary"
             icon="download"
             size="small"
-            onClick={() => this.onDownloadClick(stream, row.id)}
+            onClick={() => this.onDownloadClick(stream, row)}
           >
             下载
           </Button>
@@ -144,9 +146,10 @@ class List extends Component {
     http.get(`close/${connectionId}/${clientId}`);
   };
 
-  onRefresh = (connnectionId) => {
-    const videoInfo = getVideoInfoByConnectionId(connnectionId);
-    this.onDownloadClick(videoInfo.stream, videoInfo.parent_id);
+  onRefresh = (connectionId) => {
+    const videoInfo = getVideoInfoByConnectionId(connectionId);
+    console.log(videoInfo);
+    this.onDownloadClick(videoInfo.stream, videoInfo.row);
   };
 
   render() {

@@ -1,20 +1,45 @@
 const downloadProcessMaps = new Map();
 const shell = require('shelljs');
+const { spawn } = require('child_process');
 const downloadsFolder = require('downloads-folder');
-const { parseSiteStringToJson } = require('./utils');
-const WsClient = require('./utils/websocket.client');
+const { parseSiteStringToJson, throttle } = require('./index');
+const logger = require('./logger');
+const WsClient = require('./websocket/websocket.client');
 
-function getDownloadInfo(data, ws, params) {
-  if (data) {
-    const downloadInfo = data
-      // eslint-disable-next-line no-useless-escape
-      .match(/(?<=\[[^\]]+?\])(?:\s*([\d\.]+?\s*%))(?:\s*([\d\.]+?\s*MiB\/s))(?:\s*(.*))/);
+let isDownloading = false;
+
+// eslint-disable-next-line no-unused-vars
+function makeFakeDownload(ws, params) {
+  // eslint-disable-next-line camelcase
+  const { parent_id, child_id, client_id } = params;
+  let progress1 = 0;
+  const inter = setInterval(() => {
+    WsClient.send(ws, {
+      speed: '1.04 MiB/s',
+      progress: progress1,
+      remain: '00m34s',
+      parent_id,
+      child_id,
+      client_id,
+    });
+    if (progress1 >= 100) {
+      clearInterval(inter);
+    }
+    progress1 += Math.random() * 3 + 5;
+  }, 1000);
+}
+
+function getDownloadInfo(chunk, ws, params) {
+  // eslint-disable-next-line camelcase
+  const { parent_id, child_id, client_id } = params;
+  if (isDownloading && chunk) {
+    const data = chunk.toString();
+    // eslint-disable-next-line no-useless-escape
+    const downloadInfo = data.match(/(?<=\[[^\]]+?\])(?:\s*([\d\.]+?\s*%))(?:\s*([\d\.]+?\s*MiB\/s))(?:\s*(.*))/);
     if (downloadInfo) {
       const progress = downloadInfo[1];
       const speed = downloadInfo[2];
       const remain = downloadInfo[3];
-      // eslint-disable-next-line camelcase
-      const { parent_id, child_id, client_id } = params;
 
       WsClient.send(ws, {
         speed,
@@ -24,26 +49,28 @@ function getDownloadInfo(data, ws, params) {
         child_id,
         client_id,
       });
-
-      let downloadTimeout;
-      if (progress >= 100) {
-        if (downloadTimeout) {
-          clearTimeout(downloadTimeout);
-        }
-      }
-      downloadTimeout = setTimeout(getDownloadInfo, 4000);
     }
+  } else {
+    logger.info(`[server annie download] chunk === undefined: ${chunk === undefined}, download completed`);
+    WsClient.send(ws, {
+      speed: '0',
+      progress: '100',
+      remain: '0',
+      parent_id,
+      child_id,
+      client_id,
+    });
   }
 }
 
 const AnnieDownloader = {
   getVideoList(url) {
     return new Promise((resolve) => {
-      console.log('[server annie list] get video request url', url);
+      logger.info('[server annie list] get video request url', url);
       const annieProcess = shell.exec(`annie -i -p ${decodeURIComponent(url)}`, { silent: true });
       const { code, stdout, stderr } = annieProcess;
-      console.log('[server annie list] code', code);
-      console.log('[server annie list] stderr', stderr);
+      logger.info('[server annie list] code', code);
+      logger.info('[server annie list] stderr', stderr);
 
       if (stderr) {
         resolve({ hasError: true, msg: 'please input valid search url', error: stderr });
@@ -51,44 +78,50 @@ const AnnieDownloader = {
 
       if (code === 0) {
         const siteJson = parseSiteStringToJson(stdout, url);
-        console.log(`[server annie list] video list ${JSON.stringify(siteJson)}`);
+        logger.info(`[server annie list] video list ${JSON.stringify(siteJson)}`);
         resolve({ hasError: false, list: siteJson });
       }
       resolve({ hasError: true, msg: stdout });
     });
   },
   async download(connectionId, params) {
-    console.log(`[server annie download] connectionId:${connectionId}, params: ${JSON.stringify(params)}`);
-    const { code, url } = params;
+    logger.info(`[server annie download] connectionId:${connectionId}, params: ${JSON.stringify(params)}`);
+    const { code, url, filename } = params;
     const ws = await WsClient.connect(connectionId);
     let downloadSuccess = true;
 
-    const downloadCommand = `annie -o ${downloadsFolder()} -f ${code} ${url}`;
-    const downloadProcess = shell.exec(downloadCommand, { async: true });
-    console.log(`[server annie download] download command: ${downloadCommand}`);
+    const downloadCommand = `annie -n 1 -o ${downloadsFolder()} -O ${filename} -f ${code} ${url}`;
+    // const downloadProcess = shell.exec(downloadCommand, { async: true });
+    const downloadProcess = spawn('annie', ['-n', '1', '-o', downloadsFolder(), '-O', filename, '-f', code, url]);
+
+    logger.info(`[server annie download] download command: ${downloadCommand}`);
     downloadProcessMaps.set(connectionId, downloadProcess);
+    isDownloading = true;
 
     downloadProcess.stderr.on('data', () => {
       downloadSuccess = false;
     });
 
-    downloadProcess.stdout.on('data', (data) => {
-      // console.log(`[server annie download] stdout: ${data}`);
+    downloadProcess.stdout.on('data', throttle((chunk) => {
       try {
-        getDownloadInfo(data, ws, params);
+        if (!chunk) {
+          isDownloading = false;
+        }
+        getDownloadInfo(chunk, ws, params);
       } catch (e) {
         downloadSuccess = false;
         WsClient.close(params.client_id, connectionId, 'download error');
         this.stop(connectionId);
-        console.error(`[server annie download] error: ${e}`);
+        logger.error(`[server annie download] error: ${e}`);
       }
-    });
+    }, 500, 300));
+
     return downloadSuccess;
   },
   stop(connectionId) {
     const process = downloadProcessMaps.get(connectionId);
     downloadProcessMaps.delete(connectionId);
-    console.log(`[server annie stop] download process ${connectionId} ready to shut down`);
+    logger.info(`[server annie stop] download process ${connectionId} ready to shut down`);
     process.kill('SIGINT');
   },
 };

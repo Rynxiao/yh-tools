@@ -12,5 +12,6 @@
     "FONT": "fonts",
     "IMAGE": "imgs"
   },
-  "EXT": "ejs"
+  "EXT": "ejs",
+  "LOGGER_CATEGORY": "annie"
 }

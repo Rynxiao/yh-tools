@@ -1,13 +1,14 @@
 const express = require('express');
-const WsClient = require('../public/javascripts/utils/websocket.client');
+const WsClient = require('../public/javascripts/websocket/websocket.client');
 const AnnieDownloader = require('../public/javascripts/annie');
+const logger = require('../public/javascripts/logger');
 
 const router = express.Router();
 
 router.get('/list', async (req, res) => {
   const url = req.query.request_url;
   const result = await AnnieDownloader.getVideoList(url);
-  console.log(`[server request list] request result ${JSON.stringify(result)}`);
+  logger.info(`[server request list] request result ${JSON.stringify(result)}`);
 
   if (result.hasError) {
     res.json({ code: 400, msg: result.msg });
@@ -20,7 +21,7 @@ router.get('/list', async (req, res) => {
 });
 
 router.get('/download', async (req, res) => {
-  const { code } = req.query;
+  const { code, filename } = req.query;
   const url = req.query.download_url;
   const clientId = req.query.client_id;
   const parentId = req.query.parent_id;
@@ -30,6 +31,7 @@ router.get('/download', async (req, res) => {
   const params = {
     code,
     url,
+    filename,
     parent_id: parentId,
     child_id: childId,
     client_id: clientId,
@@ -46,7 +48,7 @@ router.get('/download', async (req, res) => {
 router.get('/close/:id/:browser_client_id', (req, res) => {
   const connectionId = req.params.id;
   const browserClientId = req.params.browser_client_id;
-  console.log(`[server router] /close/${connectionId}/${browserClientId}`);
+  logger.info(`[server router] /close/${connectionId}/${browserClientId}`);
   AnnieDownloader.stop(connectionId);
   WsClient.close(browserClientId, connectionId, 'stop by manually');
   res.json({ code: 200 });

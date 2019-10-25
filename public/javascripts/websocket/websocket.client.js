@@ -1,5 +1,6 @@
 const WebSocketClient = require('websocket').client;
 const CONFIG = require('../../../build/config');
+const logger = require('../logger');
 
 const connectionMaps = new Map();
 const wsMaps = new Map();
@@ -32,24 +33,24 @@ const WsClient = {
 
     return new Promise((resolve) => {
       clientInstance.on('connectFailed', (error) => {
-        console.log(`[ws client] Connect Error: ${error.toString()}`);
+        logger.info(`[ws client] Connect Error: ${error.toString()}`)
       });
 
       clientInstance.on('connect', (ws) => {
-        console.log(`[ws client] set ws with connection_id: ${connectionId}`);
+        logger.info(`[ws client] set ws with connection_id: ${connectionId}`);
         wsMaps.set(connectionId, ws);
 
         ws.on('error', (error) => {
-          console.error(`[ws client] connection Error: ${error.toString()}`);
+          logger.error(`[ws client] connection Error: ${error.toString()}`);
         });
 
         ws.on('close', () => {
-          console.log('[ws client] echo-protocol Connection Closed');
+          logger.info('[ws client] echo-protocol Connection Closed');
         });
 
         ws.on('message', (message) => {
           if (message.type === 'utf8') {
-            console.log(`[ws client] Received: '${message.utf8Data}'`);
+            logger.info(`[ws client] Received: '${message.utf8Data}'`);
             const data = JSON.parse(message.utf8Data);
             if (data.event === 'complete') {
               removeConnectionFromMap(data.connectionId);
@@ -67,7 +68,7 @@ const WsClient = {
       try {
         msg = JSON.stringify(msg);
       } catch (e) {
-        console.error('[ws client] send message error', e);
+        logger.error('[ws client] send message error', e);
       }
     }
 

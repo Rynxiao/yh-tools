@@ -17,6 +17,9 @@ const getStatus = (progress, status) => {
   return 'active';
 };
 
+const getSpeed = (speed) => speed.replace('iB', '');
+const getRemain = (remain) => remain.replace('m', '分').replace('s', '秒');
+
 const CloseBtn = ({ setClose, onClose }) => (
   <Icon
     type="close-circle"
@@ -40,6 +43,26 @@ const RedoBtn = ({ setClose, onRefresh }) => (
   />
 );
 
+const getSpeedTemplate = (speed) => {
+  if (+speed === 0) return null;
+  return (
+    <span>
+      下载速度：
+      <span className="speed">{getSpeed(speed)}</span>
+    </span>
+  );
+};
+
+const getRemainTemplate = (remain) => {
+  if (+remain === 0) return null;
+  return (
+    <span>
+      预计完成还需要：
+      <span className="time">{getRemain(remain)}</span>
+    </span>
+  );
+};
+
 const ProgressBar = ({
   progress,
   speed,
@@ -53,7 +76,7 @@ const ProgressBar = ({
   const isComplete = progress === 100;
   return (
     <div className="progress-bar">
-      <p>{ filename }</p>
+      <p>{ getSpeed(filename) }</p>
       <Row type="flex" justify="space-around" align="middle">
         <Col span={19}><Progress percent={progress} status={getStatus(progress, status)} /></Col>
         <Col span={2}>
@@ -62,14 +85,8 @@ const ProgressBar = ({
         </Col>
       </Row>
       <div className="extra-info">
-        <span>
-          下载速度：
-          <span className="speed">{speed}</span>
-        </span>
-        <span>
-          预计完成还需要：
-          <span className="time">{remain}</span>
-        </span>
+        {getSpeedTemplate(speed)}
+        {getRemainTemplate(remain)}
       </div>
     </div>
   );
