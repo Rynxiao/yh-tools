@@ -6,7 +6,7 @@
     "clear": "rimraf dist",
     "deploy": "npm run build && npm run server",
     "server": "cross-env NODE_ENV=production node ./bin/www",
-    "dev": "cross-env NODE_ENV=development nodemon ./bin/www --watch server",
+    "dev": "cross-env NODE_ENV=development nodemon ./bin/www --watch public --watch routes --watch app.js",
     "build": "npm run clear && cross-env NODE_ENV=production webpack --config ./build/webpack.prod.config.js"
   },
   "dependencies": {
