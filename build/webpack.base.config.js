@@ -3,7 +3,7 @@ const { resolve } = require('path');
 const CONFIG = require('./config');
 
 const isDev = process.env.NODE_ENV === 'development';
-const filePath = resolve(__dirname, '../src/index.jsx');
+const filePath = resolve(__dirname, '../src/app.jsx');
 
 module.exports = {
   entry: {

@@ -1,17 +1,13 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
 import {
-  Col, Layout, Row, message,
+  Col, Row, message,
 } from 'antd';
-import './index.less';
-import { trim } from './utils';
-import http from './api/http';
-import Input from './components/input';
-import List from './components/list';
+import { trim } from '../utils';
+import http from '../api/http';
+import Input from '../components/annie/input';
+import List from '../components/annie/list';
 
-const { Header, Content } = Layout;
-
-class App extends Component {
+class Annie extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -45,23 +41,16 @@ class App extends Component {
   render() {
     const { loading, list } = this.state;
     return (
-      <div className="app">
-        <Layout>
-          <Header className="header"><h2>Annie Downloader</h2></Header>
-          <Content className="content pd-50">
-            <Row>
-              <Col span={3} />
-              <Col span={18}>
-                <Input onSearch={this.onSearch} />
-                <List loading={loading} list={list} />
-              </Col>
-              <Col span={3} />
-            </Row>
-          </Content>
-        </Layout>
-      </div>
+      <Row>
+        <Col span={3} />
+        <Col span={18}>
+          <Input onSearch={this.onSearch} />
+          <List loading={loading} list={list} />
+        </Col>
+        <Col span={3} />
+      </Row>
     );
   }
 }
 
-ReactDOM.render(<App />, document.querySelector('#app'));
+export default Annie;
