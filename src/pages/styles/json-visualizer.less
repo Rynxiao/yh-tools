@@ -1,0 +1,103 @@
+@import "../../styles/index";
+
+.row, .col {
+  height: 100%;
+}
+
+.input-left {
+  height: 100% !important;
+}
+
+.result {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  line-height: 20px;
+  font-size: 13px;
+}
+
+.util {
+  width: 100%;
+  height: 40px;
+  line-height: 40px;
+  padding: 0 20px;
+  border-bottom: 1px solid @border-color;
+}
+
+.content-wrapper {
+  width: 100%;
+  flex: 1;
+  overflow: auto;
+}
+
+.row-number {
+  width: 45px;
+  height: 100%;
+  border-right: 1px dashed @border-color;
+  background-color: rgb(250, 250, 250);
+  font-size: 12px;
+}
+
+.row-number-item {
+  width: 100%;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  color: rgb(153, 153, 153);
+}
+
+.json-content {
+  flex: 1;
+}
+
+.indent {
+  padding-left: 20px;
+}
+
+.key-value-overflow {
+  white-space: nowrap;
+}
+
+.json-key {
+  font-weight: bold;
+  color: @pink1;
+}
+
+.json-value-string {
+  font-weight: bold;
+  color: @progress-success-bar-color;
+}
+
+.json-value-null {
+  font-weight: bold;
+  color: @progress-bar-color;
+}
+
+.json-value-number {
+  color: #ff007d;
+}
+
+.json-value-bool {
+  font-weight: bold;
+  color: @blue1;
+}
+
+.icon-expand > i, .icon-collapse > i {
+  border: 1px solid @black1;
+  color: @black1;
+  border-radius: 2px;
+  font-size: 8px;
+  display: inline-block;
+  margin-right: 2px;
+  padding: 1px;
+  cursor: pointer;
+  vertical-align: 1px;
+}
+.icon-collapse,
+.json-object-collapse,
+.json-array-collapse,
+.json-object-ellipse,
+.json-array-ellipse {
+  display: none;
+}

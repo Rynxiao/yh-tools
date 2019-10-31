@@ -16,7 +16,7 @@ const { Header, Content } = Layout;
 const App = () => (
   <Router>
     <div className="app">
-      <Layout>
+      <Layout className="layout">
         <Header>
           <div className="logo" />
           <Menu
@@ -25,11 +25,11 @@ const App = () => (
             defaultSelectedKeys={['1']}
             style={{ lineHeight: '64px' }}
           >
-            <Menu.Item key="1"><Link to="/">Json Visualizer</Link></Menu.Item>
-            <Menu.Item key="2"><Link to="/annie-downloader">Annie Downloader</Link></Menu.Item>
+            <Menu.Item key="1"><Link to="/">Json可视化</Link></Menu.Item>
+            <Menu.Item key="2"><Link to="/annie-downloader">Annie下载器</Link></Menu.Item>
           </Menu>
         </Header>
-        <Content className="content pd-50">
+        <Content className="content">
           <Switch>
             <Route exact path="/">
               <LazyLoad path="json-visualizer" />

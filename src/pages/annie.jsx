@@ -41,7 +41,7 @@ class Annie extends Component {
   render() {
     const { loading, list } = this.state;
     return (
-      <Row>
+      <Row className="pd-50">
         <Col span={3} />
         <Col span={18}>
           <Input onSearch={this.onSearch} />
