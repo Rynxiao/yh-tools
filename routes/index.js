@@ -3,7 +3,7 @@ const { render } = require('../public/javascripts/render');
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
+router.get('*', async (req, res, next) => {
   try {
     await render(res, 'index');
   } catch (e) {
