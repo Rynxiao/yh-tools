@@ -6,8 +6,15 @@ const TextHtml = ({ jsonObject, keyIndex, name }) => (
 );
 
 TextHtml.propTypes = {
-  jsonObject: PropTypes.string.isRequired,
-  keyIndex: PropTypes.number.isRequired,
+  jsonObject: PropTypes.oneOfType([
+    PropTypes.number.isRequired,
+    PropTypes.string.isRequired,
+    PropTypes.bool.isRequired,
+  ]).isRequired,
+  keyIndex: PropTypes.oneOfType([
+    PropTypes.number.isRequired,
+    PropTypes.string.isRequired,
+  ]).isRequired,
   name: PropTypes.string.isRequired,
 };
 

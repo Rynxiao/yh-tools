@@ -44,22 +44,27 @@ class JsonVisualizer extends Component {
     }
   };
 
+  generateSpace = (number) => Array(number).fill('&nbsp;&nbsp;').join('');
+
   generateObjectHtml = (jsonObject, keyIndex) => {
     const keys = Object.keys(jsonObject);
+    let objectSTRING = '{\n';
     let objectHTML = [
       <CollapseAndExpand
+        key={`objectCAE${keyIndex}`}
         type={OBJECT}
         keyIndex={keyIndex}
         expandOrCollapse={this.expandOrCollapse}
       />,
     ];
     keys.forEach((key, objectIndex) => {
-      const objectHtml = this.generateTemplate(jsonObject[key], keyIndex + 1);
+      const { html, string } = this.generateTemplate(jsonObject[key], keyIndex + 1);
       const objectKey = `array${keyIndex}${key}${objectIndex}`;
-      const content = objectIndex === keys.length - 1
-        ? <>{objectHtml}</> : (
+      const isLastValue = objectIndex === keys.length - 1;
+      const content = objectIndex === isLastValue
+        ? <>{html}</> : (
           <>
-            {objectHtml}
+            {html}
             {','}
           </>
         );
@@ -69,38 +74,50 @@ class JsonVisualizer extends Component {
           <span>{content}</span>
         </div>,
       );
+      objectSTRING += `${this.generateSpace(keyIndex + 1)}"${key}": ${isLastValue ? string : `${string},`}\n`;
     });
     objectHTML = objectHTML.concat(<span key={`object${keyIndex + 1}`}>{'}'}</span>);
-    return objectHTML;
+    objectSTRING += `${this.generateSpace(keyIndex)}}`;
+    return { html: objectHTML, string: objectSTRING };
   };
 
   generateArrayHtml = (jsonObject, keyIndex) => {
-    let arrayHtmlWrapper = [
+    let arraySTRING = '[';
+    let arrayHTML = [
       <CollapseAndExpand
+        key={`arrayCAE${keyIndex}`}
         type={ARRAY}
         keyIndex={keyIndex}
         expandOrCollapse={this.expandOrCollapse}
       />,
     ];
     jsonObject.forEach((arrayValue, arrayIndex) => {
-      const arrayHtml = this.generateTemplate(arrayValue, keyIndex + 1);
+      const { html, string } = this.generateTemplate(arrayValue, keyIndex + 1);
       const key = `array${keyIndex}${arrayValue}${arrayIndex}`;
+      const isLastValue = arrayIndex === jsonObject.length - 1;
       const content = arrayIndex === jsonObject.length - 1
-        ? <span>{arrayHtml}</span> : (
+        ? <span>{html}</span> : (
           <span>
-            {arrayHtml}
+            {html}
             {','}
           </span>
         );
-      arrayHtmlWrapper = arrayHtmlWrapper.concat(
+      arrayHTML = arrayHTML.concat(
         <div className={`${classNames.JSON_ARRAY_CONTENT} indent`} key={key}>
           <span>{content}</span>
         </div>,
       );
+      arraySTRING += `\n${this.generateSpace(keyIndex + 1)}${isLastValue ? string : `${string},`}`;
     });
-    arrayHtmlWrapper = arrayHtmlWrapper.concat(<span key={`array${keyIndex + 1}`}>]</span>);
-    return arrayHtmlWrapper;
+    arrayHTML = arrayHTML.concat(<span key={`array${keyIndex + 1}`}>]</span>);
+    arraySTRING += `\n${this.generateSpace(keyIndex)}]`;
+    return { html: arrayHTML, string: arraySTRING };
   };
+
+  plainText = (className, index, value) => ({
+    html: <TextHtml name={className} keyIndex={`original${index}`} jsonObject={value} />,
+    string: value,
+  });
 
   generateTemplate = (jsonObject, index = 0) => {
     if (TYPES.isObject(jsonObject)) {
@@ -112,27 +129,28 @@ class JsonVisualizer extends Component {
     }
 
     if (TYPES.isNull(jsonObject)) {
-      return <TextHtml name="json-value-null" keyIndex={`original${index}`} jsonObject={`${jsonObject}`} />;
+      return this.plainText('json-value-null', index, `${jsonObject}`);
     }
 
     if (TYPES.isString(jsonObject)) {
-      return <TextHtml name="json-value-string" keyIndex={`original${index}`} jsonObject={`"${jsonObject}"`} />;
+      return this.plainText('json-value-string', index, `"${jsonObject}"`);
     }
 
     if (TYPES.isBoolean(jsonObject)) {
-      return <TextHtml name="json-value-bool" keyIndex={`original${index}`} jsonObject={`${jsonObject}`} />;
+      return this.plainText('json-value-bool', index, `${jsonObject}`);
     }
 
     if (TYPES.isNumber(jsonObject)) {
-      return <TextHtml name="json-value-number" keyIndex={`original${index}`} jsonObject={jsonObject} />;
+      return this.plainText('json-value-number', index, jsonObject);
     }
-    return null;
+    return { html: null, string: '' };
   };
 
   parseData = (data) => {
     try {
       const jsonObject = JSON.parse(data);
-      const result = this.generateTemplate(jsonObject);
+      const result = this.generateTemplate(jsonObject).html;
+      console.log(this.generateTemplate(jsonObject).string);
       this.setState({ result });
     } catch (e) {
       this.setState({ result: e.message });
