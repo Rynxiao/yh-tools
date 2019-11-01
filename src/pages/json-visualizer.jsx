@@ -1,7 +1,13 @@
 import {
-  Col, Row, Input, Icon,
+  Col, Row, Input,
 } from 'antd';
 import React, { Component } from 'react';
+import CollapseAndExpand from '../components/json-visualizer/collapse-and-expand';
+import {
+  classNames, ICON_COLLAPSE, ICON_EXPAND, OBJECT, ARRAY,
+} from '../components/json-visualizer/constants';
+import RowNumber from '../components/json-visualizer/row-number';
+import TextHtml from '../components/json-visualizer/text-html';
 import {
   findParentNode,
   hideCollapseFlag,
@@ -15,30 +21,6 @@ import {
 import './styles/json-visualizer.less';
 
 const { TextArea } = Input;
-const ARRAY = 'ARRAY';
-const OBJECT = 'OBJECT';
-const classNames = {
-  JSON_OBJECT_WRAPPER: 'json-object-wrapper',
-  JSON_OBJECT_CONTENT: 'json-object-content',
-  JSON_OBJECT_COLLAPSE: 'json-object-collapse',
-  JSON_OBJECT_ELLIPSE: 'json-object-ellipse',
-  JSON_ARRAY_WRAPPER: 'json-array-wrapper',
-  JSON_ARRAY_CONTENT: 'json-array-content',
-  JSON_ARRAY_COLLAPSE: 'json-array-collapse',
-  JSON_ARRAY_ELLIPSE: 'json-array-ellipse',
-};
-const ICON_COLLAPSE = 'icon-collapse';
-const ICON_EXPAND = 'icon-expand';
-
-const RowNumber = ({ number = 231 }) => {
-  const rowNumberItems = [];
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0; i < number; i++) {
-    rowNumberItems.push(<div key={`row${i}`} className="row-number-item">{i + 1}</div>);
-  }
-
-  return rowNumberItems;
-};
 
 class JsonVisualizer extends Component {
   constructor(props) {
@@ -62,91 +44,87 @@ class JsonVisualizer extends Component {
     }
   };
 
+  generateObjectHtml = (jsonObject, keyIndex) => {
+    const keys = Object.keys(jsonObject);
+    let objectHTML = [
+      <CollapseAndExpand
+        type={OBJECT}
+        keyIndex={keyIndex}
+        expandOrCollapse={this.expandOrCollapse}
+      />,
+    ];
+    keys.forEach((key, objectIndex) => {
+      const objectHtml = this.generateTemplate(jsonObject[key], keyIndex + 1);
+      const objectKey = `array${keyIndex}${key}${objectIndex}`;
+      const content = objectIndex === keys.length - 1
+        ? <>{objectHtml}</> : (
+          <>
+            {objectHtml}
+            {','}
+          </>
+        );
+      objectHTML = objectHTML.concat(
+        <div className={`${classNames.JSON_OBJECT_CONTENT} key-value-overflow indent`} key={objectKey}>
+          <span className="json-key">{`"${key}": `}</span>
+          <span>{content}</span>
+        </div>,
+      );
+    });
+    objectHTML = objectHTML.concat(<span key={`object${keyIndex + 1}`}>{'}'}</span>);
+    return objectHTML;
+  };
+
+  generateArrayHtml = (jsonObject, keyIndex) => {
+    let arrayHtmlWrapper = [
+      <CollapseAndExpand
+        type={ARRAY}
+        keyIndex={keyIndex}
+        expandOrCollapse={this.expandOrCollapse}
+      />,
+    ];
+    jsonObject.forEach((arrayValue, arrayIndex) => {
+      const arrayHtml = this.generateTemplate(arrayValue, keyIndex + 1);
+      const key = `array${keyIndex}${arrayValue}${arrayIndex}`;
+      const content = arrayIndex === jsonObject.length - 1
+        ? <span>{arrayHtml}</span> : (
+          <span>
+            {arrayHtml}
+            {','}
+          </span>
+        );
+      arrayHtmlWrapper = arrayHtmlWrapper.concat(
+        <div className={`${classNames.JSON_ARRAY_CONTENT} indent`} key={key}>
+          <span>{content}</span>
+        </div>,
+      );
+    });
+    arrayHtmlWrapper = arrayHtmlWrapper.concat(<span key={`array${keyIndex + 1}`}>]</span>);
+    return arrayHtmlWrapper;
+  };
+
   generateTemplate = (jsonObject, index = 0) => {
     if (TYPES.isObject(jsonObject)) {
-      const keys = Object.keys(jsonObject);
-      let objectHTML = [
-        <span className={classNames.JSON_OBJECT_WRAPPER} key={`object${index}`}>
-          <span className={ICON_EXPAND}>
-            <Icon onClick={(event) => this.expandOrCollapse(event, OBJECT)} type="minus" />
-          </span>
-          <span className={ICON_COLLAPSE}>
-            <Icon onClick={(event) => this.expandOrCollapse(event, OBJECT)} type="plus" />
-          </span>
-          <span className={classNames.JSON_OBJECT_COLLAPSE}>Object</span>
-          <span>{'{'}</span>
-          <span className={classNames.JSON_OBJECT_ELLIPSE}>...</span>
-        </span>,
-      ];
-      keys.forEach((key, objectIndex) => {
-        const objectHtml = this.generateTemplate(jsonObject[key], index + 1);
-        const objectKey = `array${index}${key}${objectIndex}`;
-        const content = objectIndex === keys.length - 1
-          ? <>{objectHtml}</> : (
-            <>
-              {objectHtml}
-              {','}
-            </>
-          );
-        objectHTML = objectHTML.concat(
-          <div className={`${classNames.JSON_OBJECT_CONTENT} key-value-overflow indent`} key={objectKey}>
-            <span className="json-key">{`"${key}": `}</span>
-            <span>{content}</span>
-          </div>,
-        );
-      });
-      objectHTML = objectHTML.concat(<span key={`object${index + 1}`}>{'}'}</span>);
-      return objectHTML;
+      return this.generateObjectHtml(jsonObject, index);
     }
 
     if (TYPES.isArray(jsonObject)) {
-      let arrayHtmlWrapper = [
-        <span className={classNames.JSON_ARRAY_WRAPPER} key={`array${index}`}>
-          <span className={ICON_EXPAND}>
-            <Icon onClick={(event) => this.expandOrCollapse(event, ARRAY)} type="minus" />
-          </span>
-          <span className={ICON_COLLAPSE}>
-            <Icon onClick={(event) => this.expandOrCollapse(event, ARRAY)} type="plus" />
-          </span>
-          <span className={classNames.JSON_ARRAY_COLLAPSE}>Array</span>
-          <span>[</span>
-          <span className={classNames.JSON_ARRAY_ELLIPSE}>...</span>
-        </span>,
-      ];
-      jsonObject.forEach((arrayValue, arrayIndex) => {
-        const arrayHtml = this.generateTemplate(arrayValue, index + 1);
-        const key = `array${index}${arrayValue}${arrayIndex}`;
-        const content = arrayIndex === jsonObject.length - 1
-          ? <span>{arrayHtml}</span> : (
-            <span>
-              {arrayHtml}
-              {','}
-            </span>
-          );
-        arrayHtmlWrapper = arrayHtmlWrapper.concat(
-          <div className={`${classNames.JSON_ARRAY_CONTENT} indent`} key={key}>
-            <span>{content}</span>
-          </div>,
-        );
-      });
-      arrayHtmlWrapper = arrayHtmlWrapper.concat(<span key={`array${index + 1}`}>]</span>);
-      return arrayHtmlWrapper;
+      return this.generateArrayHtml(jsonObject, index);
     }
 
     if (TYPES.isNull(jsonObject)) {
-      return <span className="json-value-null" key={`original${index}`}>{`${jsonObject}`}</span>;
+      return <TextHtml name="json-value-null" keyIndex={`original${index}`} jsonObject={`${jsonObject}`} />;
     }
 
     if (TYPES.isString(jsonObject)) {
-      return <span className="json-value-string" key={`original${index}`}>{`"${jsonObject}"`}</span>;
+      return <TextHtml name="json-value-string" keyIndex={`original${index}`} jsonObject={`"${jsonObject}"`} />;
     }
 
     if (TYPES.isBoolean(jsonObject)) {
-      return <span className="json-value-bool" key={`original${index}`}>{`${jsonObject}`}</span>;
+      return <TextHtml name="json-value-bool" keyIndex={`original${index}`} jsonObject={`${jsonObject}`} />;
     }
 
     if (TYPES.isNumber(jsonObject)) {
-      return <span className="json-value-number" key={`original${index}`}>{jsonObject}</span>;
+      return <TextHtml name="json-value-number" keyIndex={`original${index}`} jsonObject={jsonObject} />;
     }
     return null;
   };
@@ -177,6 +155,7 @@ class JsonVisualizer extends Component {
         <Col className="col" span={10}>
           <TextArea
             className="input-left"
+            placeholder="输入或者粘贴json数据..."
             onPaste={(event) => this.onInputPaste(event)}
             onChange={(event) => this.onInputChange(event)}
           />
