@@ -5,10 +5,11 @@ import {
   BrowserRouter as Router,
   Switch,
   Route,
-  Link,
+  Link, Redirect,
 } from 'react-router-dom';
+import Annie from './pages/annie';
+import JsonVisualizer from './pages/json-visualizer';
 import NoMatch from './pages/no-match';
-import LazyLoad from './components/lazyload';
 import './app.less';
 
 const { Header, Content } = Layout;
@@ -32,10 +33,10 @@ const App = () => (
         <Content className="content">
           <Switch>
             <Route exact path="/">
-              <LazyLoad path="json-visualizer" />
+              <JsonVisualizer />
             </Route>
             <Route path="/annie-downloader">
-              <LazyLoad path="annie" />
+              <Annie />
             </Route>
             <Route path="*">
               <NoMatch />
