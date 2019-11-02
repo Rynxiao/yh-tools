@@ -1,5 +1,5 @@
 import CONFIG from '../../build/config';
-import { clientId } from './index';
+import { clientId } from './annie-video';
 
 export default {
   socket: null,

@@ -5,7 +5,7 @@ import {
   BrowserRouter as Router,
   Switch,
   Route,
-  Link, Redirect,
+  Link,
 } from 'react-router-dom';
 import Annie from './pages/annie';
 import JsonVisualizer from './pages/json-visualizer';

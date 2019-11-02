@@ -22,7 +22,7 @@ function setNextSiblingsDisplay(dom, display, siblingClass) {
   const siblings = dom.parentNode.querySelectorAll(`.${siblingClass}`);
   siblings.forEach((sibling) => {
     const s = sibling;
-    s.style = `display: ${shouldShow}`;
+    s.style = `display: ${shouldShow};`;
   });
 }
 

@@ -1,13 +1,16 @@
 import {
-  Col, Row, Input,
+  Col, Row, Input, Icon, message,
 } from 'antd';
 import React, { Component } from 'react';
+import uuidv1 from 'uuid/v1';
 import CollapseAndExpand from '../components/json-visualizer/collapse-and-expand';
 import {
   classNames, ICON_COLLAPSE, ICON_EXPAND, OBJECT, ARRAY,
 } from '../components/json-visualizer/constants';
 import RowNumber from '../components/json-visualizer/row-number';
 import TextHtml from '../components/json-visualizer/text-html';
+import Lazyload from '../components/lazyload';
+import { downloadRawText, removeSelection } from '../utils';
 import {
   findParentNode,
   hideCollapseFlag,
@@ -27,7 +30,30 @@ class JsonVisualizer extends Component {
     super(props);
     this.state = {
       result: '',
+      htmlString: '',
+      htmlTemplate: false,
+      clipboard: null,
     };
+    this.htmlInput = React.createRef();
+    this.pasteIcon = React.createRef();
+  }
+
+  componentDidMount() {
+    // eslint-disable-next-line no-undef
+    const clipboard = new ClipboardJS(this.pasteIcon.current);
+    clipboard.on('success', () => {
+      message.success('内容已经成功复制到剪切板');
+    });
+
+    clipboard.on('error', () => {
+      message.error('复制错误');
+    });
+    this.setState({ clipboard });
+  }
+
+  componentWillUnmount() {
+    const { clipboard } = this.state;
+    clipboard.destroy();
   }
 
   expandOrCollapse = (event, type) => {
@@ -44,7 +70,7 @@ class JsonVisualizer extends Component {
     }
   };
 
-  generateSpace = (number) => Array(number).fill('&nbsp;&nbsp;').join('');
+  generateSpace = (number) => Array(number).fill('\xa0\xa0').join('');
 
   generateObjectHtml = (jsonObject, keyIndex) => {
     const keys = Object.keys(jsonObject);
@@ -150,8 +176,8 @@ class JsonVisualizer extends Component {
     try {
       const jsonObject = JSON.parse(data);
       const result = this.generateTemplate(jsonObject).html;
-      console.log(this.generateTemplate(jsonObject).string);
-      this.setState({ result });
+      const htmlString = this.generateTemplate(jsonObject).string;
+      this.setState({ result, htmlString });
     } catch (e) {
       this.setState({ result: e.message });
     }
@@ -166,8 +192,31 @@ class JsonVisualizer extends Component {
     this.parseData(event.target.value);
   };
 
+  showHtmlTemplate = () => {
+    const { htmlString } = this.state;
+    if (htmlString) {
+      this.setState({ htmlTemplate: true }, () => {
+        this.htmlInput.current.textAreaRef.select();
+      });
+    }
+  };
+
+  hideHtmlTemplate = () => {
+    this.setState(
+      { htmlTemplate: false },
+      () => removeSelection(),
+    );
+  };
+
+  downloadJson = () => {
+    const { htmlString } = this.state;
+    if (htmlString) {
+      downloadRawText(`${uuidv1()}.json`, htmlString);
+    }
+  };
+
   render() {
-    const { result } = this.state;
+    const { result, htmlTemplate, htmlString } = this.state;
     return (
       <Row className="row">
         <Col className="col" span={10}>
@@ -180,11 +229,27 @@ class JsonVisualizer extends Component {
         </Col>
         <Col className="col" span={14}>
           <div className="result">
-            <div className="util">utils</div>
+            <div className="util">
+              <Row type="flex" justify="space-between" align="middle">
+                <Col>
+                  <span ref={this.pasteIcon} data-clipboard-target="#htmlInput">
+                    <Icon title="复制到剪切板" className="html-icon" type="copy" />
+                  </span>
+                  <Icon title="下载" className="html-icon" type="download" onClick={this.downloadJson} />
+                  { htmlTemplate ? (
+                    <Icon title="取消" className="html-icon close-icon" type="close" onClick={this.hideHtmlTemplate} />
+                  ) : null }
+                </Col>
+                <Col>Tips: 双击下方结构可以复制json字符串</Col>
+              </Row>
+            </div>
             <div className="content-wrapper">
               <Row type="flex">
                 <Col className="row-number"><RowNumber /></Col>
-                <Col className="json-content">{result}</Col>
+                <Col className={`html-content ${htmlTemplate ? 'show' : 'hide'}`}>
+                  <TextArea id="htmlInput" ref={this.htmlInput} className="html-input" value={htmlString} />
+                </Col>
+                <Col className={`json-content ${htmlTemplate ? 'hide' : 'show'}`} onDoubleClick={this.showHtmlTemplate}>{result}</Col>
               </Row>
             </div>
           </div>

@@ -1,46 +1,43 @@
-import uuidv1 from 'uuid/v1';
-
-const clientId = uuidv1();
-let videoMap = null;
-let downloadMap = null;
-
-function trim(str) {
-  return str.replace(/^\s*/, '').replace(/\s*$/, '');
+function fakeClick(saveLink) {
+  const ev = document.createEvent('MouseEvents');
+  ev.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+  saveLink.dispatchEvent(ev);
 }
 
-function videoListToMap(videoList) {
-  const vMap = new Map();
-  downloadMap = new Map();
-  videoList.forEach((video) => {
-    const { title, id } = video;
-    const streams = video.stream;
-    streams.forEach((stream) => {
-      const { size } = stream;
-      const cid = stream.id;
-      vMap.set(`${id}-${cid}`, `${title}-${size}`);
-      downloadMap.set(`${id}-${cid}`, { stream, row: video });
-    });
-  });
-  return vMap;
+function downloadRawText(name, data) {
+  const urlObject = window.URL || window.webkitURL || window;
+  const exportBlob = new Blob([data]);
+  const saveLink = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
+  saveLink.href = urlObject.createObjectURL(exportBlob);
+  saveLink.download = name;
+  fakeClick(saveLink);
 }
 
-function getVideoInfoInMap(videoList, id) {
-  if (!videoMap) {
-    videoMap = videoListToMap(videoList);
+function removeSelection() {
+  if (window.getSelection) {
+    // all browsers, except IE before version 9
+    const selection = window.getSelection();
+    selection.deleteFromDocument();
+
+    /* The deleteFromDocument does not work in Opera.
+        Work around this bug. */
+    if (!selection.isCollapsed) {
+      const selRange = selection.getRangeAt(0);
+      selRange.deleteContents();
+    }
+
+    // The deleteFromDocument works in IE,
+    // but a part of the new content becomes selected
+    // prevent the selection
+    if (selection.anchorNode) {
+      selection.collapse(selection.anchorNode, selection.anchorOffset);
+    }
+  } else if (document.selection) { // Internet Explorer
+    document.selection.clear();
   }
-  return videoMap.get(id);
-}
-
-function getVideoInfoByConnectionId(connectionId) {
-  if (downloadMap) {
-    return downloadMap.get(connectionId);
-  }
-  return {};
 }
 
 export {
-  clientId,
-  trim,
-  getVideoInfoInMap,
-  getVideoInfoByConnectionId,
+  downloadRawText,
+  removeSelection,
 };

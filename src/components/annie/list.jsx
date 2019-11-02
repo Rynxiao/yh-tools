@@ -4,7 +4,7 @@ import {
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import http from '../../api/http';
-import { clientId, getVideoInfoByConnectionId, getVideoInfoInMap } from '../../utils';
+import { clientId, getVideoInfoByConnectionId, getVideoInfoInMap } from '../../utils/annie-video';
 import WebSocketClient from '../../utils/websocket.client';
 import './styles/list.less';
 import ProgressBar from './progress';

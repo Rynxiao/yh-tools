@@ -47,8 +47,28 @@
   color: rgb(153, 153, 153);
 }
 
-.json-content {
+.json-content, .html-content {
   flex: 1;
+}
+
+.html-content {
+  display: none;
+}
+
+.html-input {
+  width: 100%;
+  height: 100% !important;
+  line-height: 20px !important;
+  padding: 0 !important;
+}
+
+.html-icon {
+  margin-right: 15px;
+  cursor: pointer;
+}
+
+.close-icon {
+  color: @progress-bar-color;
 }
 
 .indent {
@@ -83,7 +103,8 @@
   color: @blue1;
 }
 
-.icon-expand > i, .icon-collapse > i {
+.icon-expand > i,
+.icon-collapse > i {
   border: 1px solid @black1;
   color: @black1;
   border-radius: 2px;
