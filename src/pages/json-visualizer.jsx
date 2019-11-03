@@ -9,7 +9,6 @@ import {
 } from '../components/json-visualizer/constants';
 import RowNumber from '../components/json-visualizer/row-number';
 import TextHtml from '../components/json-visualizer/text-html';
-import Lazyload from '../components/lazyload';
 import { downloadRawText, removeSelection } from '../utils';
 import {
   findParentNode,

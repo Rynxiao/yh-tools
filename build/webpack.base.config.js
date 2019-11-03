@@ -1,4 +1,6 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const { resolve } = require('path');
 const CONFIG = require('./config');
 
@@ -19,6 +21,12 @@ module.exports = {
 
   node: {
     fs: 'empty',
+  },
+
+  externals: {
+    react: 'React',
+    'react-dom': 'ReactDOM',
+    'prop-types': 'PropTypes',
   },
 
   resolve: {
@@ -105,6 +113,7 @@ module.exports = {
   },
 
   plugins: [
+    new BundleAnalyzerPlugin({ analyzerPort: 9999 }),
     new HtmlWebpackPlugin({
       filename: 'views/index.ejs',
       template: resolve(__dirname, '../views/index.ejs'),
