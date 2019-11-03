@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import {
   Col, Row, message,
 } from 'antd';
-import Lazyload from '../components/lazyload';
 import { trim } from '../utils/annie-video';
 import http from '../api/http';
 import Input from '../components/annie/input';

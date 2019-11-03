@@ -23,12 +23,6 @@ module.exports = {
     fs: 'empty',
   },
 
-  externals: {
-    react: 'React',
-    'react-dom': 'ReactDOM',
-    'prop-types': 'PropTypes',
-  },
-
   resolve: {
     alias: {
       '@': resolve(__dirname, '../src'),
