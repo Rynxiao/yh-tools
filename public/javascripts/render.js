@@ -1,5 +1,4 @@
 const axios = require('axios');
-const ejs = require('ejs');
 const CONFIG = require('../../build/config');
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -23,13 +22,12 @@ function getTemplateString(filename) {
  */
 async function render(res, filename, data) {
   // 文件后缀
-  const ext = '.ejs';
+  const ext = '.html';
   let fName = filename;
   fName = fName.indexOf(ext) > -1 ? fName.split(ext)[0] : fName;
   try {
     if (isDev) {
-      const template = await getTemplateString(`${fName}.ejs`);
-      const html = ejs.render(template, data);
+      const html = await getTemplateString(`${fName}${ext}`);
       res.send(html);
     } else {
       res.render(fName, data);

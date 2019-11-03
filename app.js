@@ -42,7 +42,9 @@ if (isDev) {
 } else {
   app.use(webpackConfig.output.publicPath, express.static(path.join(__dirname, `./${CONFIG.DIR.DIST}`)));
   app.set('views', path.join(__dirname, `./${CONFIG.DIR.DIST}/${CONFIG.DIR.VIEW}`));
-  app.set('view engine', 'ejs');
+  // eslint-disable-next-line global-require
+  app.engine('html', require('ejs').renderFile);
+  app.set('view engine', 'html');
 }
 
 app.use('/', indexRouter);

@@ -109,7 +109,7 @@ module.exports = {
   plugins: [
     new BundleAnalyzerPlugin({ analyzerPort: 9999 }),
     new HtmlWebpackPlugin({
-      filename: 'views/index.ejs',
+      filename: 'views/index.html',
       template: resolve(__dirname, '../views/index.ejs'),
       chunks: 'index',
     }),
