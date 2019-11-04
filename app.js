@@ -9,7 +9,6 @@ const webpackHotMiddleware = require('webpack-hot-middleware');
 
 const indexRouter = require('./routes/index');
 const apiRouter = require('./routes/api');
-const CONFIG = require('./build/config');
 
 const isDev = process.env.NODE_ENV === 'development';
 const app = express();
@@ -37,17 +36,12 @@ if (isDev) {
     noInfo: true,
   }));
 
-  // 指定开发环境下的静态资源目录
-  // app.use(webpackConfig.output.publicPath, express.static(path.join(__dirname, './src')));
+  app.use('/', indexRouter);
 } else {
-  app.use(webpackConfig.output.publicPath, express.static(path.join(__dirname, `./${CONFIG.DIR.DIST}`)));
-  app.set('views', path.join(__dirname, `./${CONFIG.DIR.DIST}/${CONFIG.DIR.VIEW}`));
-  // eslint-disable-next-line global-require
-  app.engine('html', require('ejs').renderFile);
-  app.set('view engine', 'html');
+  app.use('/', (req, res, next) => {
+    next();
+  });
 }
-
-app.use('/', indexRouter);
 app.use('/api', apiRouter);
 
 // catch 404 and forward to error handler
