@@ -66,22 +66,27 @@ function getDownloadInfo(chunk, ws, params) {
 const AnnieDownloader = {
   getVideoList(url) {
     return new Promise((resolve) => {
-      logger.info('[server annie list] get video request url', url);
-      const annieProcess = shell.exec(`annie -i -p ${decodeURIComponent(url)}`, { silent: true });
-      const { code, stdout, stderr } = annieProcess;
-      logger.info('[server annie list] code', code);
-      logger.info('[server annie list] stderr', stderr);
+      try {
+        logger.info('[server annie list] get video request url', url);
+        const annieProcess = shell.exec(`annie -i -p ${decodeURIComponent(url)}`, { silent: true });
+        const { code, stdout, stderr } = annieProcess;
+        logger.info('[server annie list] code', code);
+        logger.info('[server annie list] stderr', stderr);
 
-      if (stderr) {
-        resolve({ hasError: true, msg: 'please input valid search url', error: stderr });
-      }
+        if (stderr) {
+          resolve({ hasError: true, msg: 'please input valid search url', error: stderr });
+        }
 
-      if (code === 0) {
-        const siteJson = parseSiteStringToJson(stdout, url);
-        logger.info(`[server annie list] video list ${JSON.stringify(siteJson)}`);
-        resolve({ hasError: false, list: siteJson });
+        if (code === 0) {
+          const siteJson = parseSiteStringToJson(stdout, url);
+          logger.info(`[server annie list] video list ${JSON.stringify(siteJson)}`);
+          resolve({ hasError: false, list: siteJson });
+        }
+        resolve({ hasError: true, msg: stdout });
+      } catch (e) {
+        logger.error('[server annie list] video list Annie is not installed');
+        resolve({ hasError: true, msg: 'Annie is not installed' });
       }
-      resolve({ hasError: true, msg: stdout });
     });
   },
   async download(connectionId, params) {
