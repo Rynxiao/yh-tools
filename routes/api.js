@@ -11,9 +11,9 @@ router.get('/list', async (req, res) => {
   logger.info(`[server request list] request result ${JSON.stringify(result)}`);
 
   if (result.hasError) {
-    res.json({ code: 400, msg: result.msg });
+    await res.json({ code: 400, msg: result.msg });
   } else {
-    res.json({
+    await res.json({
       code: 200,
       data: { list: result.list },
     });
@@ -52,6 +52,10 @@ router.get('/close/:id/:browser_client_id', (req, res) => {
   AnnieDownloader.stop(connectionId);
   WsClient.close(browserClientId, connectionId, 'stop by manually');
   res.json({ code: 200 });
+});
+
+router.get('/test', (req, res) => {
+  res.json({ code: 200, message: 'test' });
 });
 
 module.exports = router;

@@ -1,6 +1,6 @@
 {
   "PORT": 8888,
-  "WSPORT": 8889,
+  "PORT_PROD": 8889,
   "PATH": {
     "PUBLIC_PATH": "/public/"
   },

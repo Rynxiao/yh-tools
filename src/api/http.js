@@ -1,5 +1,6 @@
 import axios from 'axios';
 import qs from 'qs';
+import CONFIG from '../../build/config';
 
 axios.interceptors.request.use(
   (config) => config,
@@ -9,7 +10,7 @@ axios.interceptors.request.use(
 axios.interceptors.response.use((response) => response, (error) => Promise.resolve(error.response));
 
 function checkStatus(response) {
-  // loading
+  console.log(`[client http] request result ${JSON.stringify(response)}`);
   // 如果http状态码正常，则直接返回数据
   if (response && (response.status === 200 || response.status === 304)) {
     return response;
@@ -27,11 +28,13 @@ function checkCode(res) {
   return res;
 }
 
+const isDev = process.env.NODE_ENV === 'development';
+
 export default {
   post(url, data) {
     return axios({
       method: 'post',
-      baseURL: 'http://localhost:8888/api/',
+      baseURL: `http://localhost:${isDev ? CONFIG.PORT : CONFIG.PORT_PROD}/api/`,
       url,
       data: qs.stringify(data),
       timeout: 10000,
@@ -48,7 +51,7 @@ export default {
   get(url, params) {
     return axios({
       method: 'get',
-      baseURL: 'http://localhost:8888/api/',
+      baseURL: `http://localhost:${isDev ? CONFIG.PORT : CONFIG.PORT_PROD}/api/`,
       url,
       params, // get 请求时带的参数
       timeout: 10000,
