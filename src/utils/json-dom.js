@@ -47,7 +47,7 @@ function showCollapseIcon(parentNode, collapseIcon, expandIcon) {
   paNode.querySelector(`.${expandIcon}`).style.display = 'none';
 }
 
-function hideCollapseFlag(parentNode, collapseText, collapseEllipse, collapseIcon, expandIcon) {
+function hideCollapseFlag(parentNode, collapseText, collapseEllipse) {
   const pNode = parentNode;
   pNode.querySelector(`.${collapseText}`).style.display = 'none';
   pNode.querySelector(`.${collapseEllipse}`).style.display = 'none';
@@ -59,6 +59,13 @@ function hideCollapseIcon(parentNode, collapseIcon, expandIcon) {
   paNode.querySelector(`.${expandIcon}`).style.display = 'unset';
 }
 
+function getHtmlElement(htmlRef, id) {
+  if (htmlRef.current) {
+    return htmlRef.current;
+  }
+  return document.querySelector(`#${id}`);
+}
+
 export {
   TYPES,
   findParentNode,
@@ -68,4 +75,5 @@ export {
   hideCollapseFlag,
   showCollapseIcon,
   hideCollapseIcon,
+  getHtmlElement,
 };

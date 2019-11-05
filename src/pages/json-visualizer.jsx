@@ -12,6 +12,7 @@ import TextHtml from '../components/json-visualizer/text-html';
 import { downloadRawText, removeSelection } from '../utils';
 import {
   findParentNode,
+  getHtmlElement,
   hideCollapseFlag,
   hideCollapseIcon,
   isNextSiblingShow,
@@ -34,14 +35,15 @@ class JsonVisualizer extends Component {
       clipboard: null,
     };
     this.htmlInput = React.createRef();
-    this.pasteIcon = React.createRef();
   }
 
   componentDidMount() {
     // eslint-disable-next-line no-undef
-    const clipboard = new ClipboardJS(this.pasteIcon.current);
-    clipboard.on('success', () => {
+    const clipboard = new ClipboardJS('#pasteIcon');
+    clipboard.on('success', (e) => {
+      console.log(e.text);
       message.success('内容已经成功复制到剪切板');
+      e.clearSelection();
     });
 
     clipboard.on('error', () => {
@@ -86,7 +88,7 @@ class JsonVisualizer extends Component {
       const { html, string } = this.generateTemplate(jsonObject[key], keyIndex + 1);
       const objectKey = `array${keyIndex}${key}${objectIndex}`;
       const isLastValue = objectIndex === keys.length - 1;
-      const content = objectIndex === isLastValue
+      const content = isLastValue
         ? <>{html}</> : (
           <>
             {html}
@@ -195,7 +197,10 @@ class JsonVisualizer extends Component {
     const { htmlString } = this.state;
     if (htmlString) {
       this.setState({ htmlTemplate: true }, () => {
-        this.htmlInput.current.textAreaRef.select();
+        const element = getHtmlElement(this.htmlInput, 'htmlInput');
+        if (element) {
+          element.select();
+        }
       });
     }
   };
@@ -231,7 +236,7 @@ class JsonVisualizer extends Component {
             <div className="util">
               <Row type="flex" justify="space-between" align="middle">
                 <Col>
-                  <span ref={this.pasteIcon} data-clipboard-target="#htmlInput">
+                  <span id="pasteIcon" data-clipboard-text={htmlString}>
                     <Icon title="复制到剪切板" className="html-icon" type="copy" />
                   </span>
                   <Icon title="下载" className="html-icon" type="download" onClick={this.downloadJson} />
