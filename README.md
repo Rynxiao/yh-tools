@@ -1,6 +1,16 @@
 # yh-tools
 some useful tools for working and life
 
+Run Project
+
+```shell script
+# dev
+yarn dev
+
+# deploy
+yarn deploy
+```
+
 ## Annie Downloader
 
 Using [Annie](https://github.com/iawia002/annie) to download resources, will download video file to /Downloads folder by default.
@@ -9,12 +19,6 @@ Using [Annie](https://github.com/iawia002/annie) to download resources, will dow
 
 ```shell script
 brew install annie
-
-# dev
-yarn dev
-
-# deploy
-yarn deploy
 ```
 
 - search list
@@ -22,3 +26,21 @@ yarn deploy
 
 - download list
 ![downloadlist](./screenshot/downloadlist.png)
+
+## JsonVisualizer
+
+### Function List
+- Download
+- Copy To board
+- Visualizer
+- Error Pointer
+
+### ScreenShot
+- Visualizer
+![parse](./screenshot/parse.png)
+
+- Error Pointer
+![error-pointer](./screenshot/error-log.png)
+
+- Selection
+![selection](./screenshot/selection.png)
