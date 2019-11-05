@@ -26,13 +26,11 @@ function checkCode(res) {
   return res;
 }
 
-const isDev = process.env.NODE_ENV === 'development';
-
 export default {
   post(url, data) {
     return axios({
       method: 'post',
-      baseURL: `http://localhost:8888/api/`,
+      baseURL: 'http://localhost:8888/api/',
       url,
       data: qs.stringify(data),
       timeout: 10000,
@@ -49,7 +47,7 @@ export default {
   get(url, params) {
     return axios({
       method: 'get',
-      baseURL: `http://localhost:8888/api/`,
+      baseURL: 'http://localhost:8888/api/',
       url,
       params, // get 请求时带的参数
       timeout: 10000,
