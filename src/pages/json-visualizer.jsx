@@ -3,6 +3,7 @@ import {
 } from 'antd';
 import React, { Component } from 'react';
 import uuidv1 from 'uuid/v1';
+import parseJson from 'parse-json';
 import CollapseAndExpand from '../components/json-visualizer/collapse-and-expand';
 import {
   classNames, ICON_COLLAPSE, ICON_EXPAND, OBJECT, ARRAY,
@@ -30,6 +31,7 @@ class JsonVisualizer extends Component {
     super(props);
     this.state = {
       result: '',
+      hasError: false,
       htmlString: '',
       htmlTemplate: false,
       clipboard: null,
@@ -41,7 +43,6 @@ class JsonVisualizer extends Component {
     // eslint-disable-next-line no-undef
     const clipboard = new ClipboardJS('#pasteIcon');
     clipboard.on('success', (e) => {
-      console.log(e.text);
       message.success('内容已经成功复制到剪切板');
       e.clearSelection();
     });
@@ -174,13 +175,23 @@ class JsonVisualizer extends Component {
   };
 
   parseData = (data) => {
+    if (!data) {
+      this.setState({ result: '', hasError: false });
+      return;
+    }
+
     try {
-      const jsonObject = JSON.parse(data);
+      const jsonObject = parseJson(data);
       const result = this.generateTemplate(jsonObject).html;
       const htmlString = this.generateTemplate(jsonObject).string;
-      this.setState({ result, htmlString });
+      this.setState({ result, htmlString, hasError: false });
     } catch (e) {
-      this.setState({ result: e.message });
+      let msg = e.message;
+      msg = msg.replace(/(near\s*)('.*')\s*/g, '$1<br /><br /><span style=\'color: red;\'>$2</span><br /><br />');
+      this.setState({
+        result: (<div dangerouslySetInnerHTML={{ __html: msg }} />),
+        hasError: true,
+      });
     }
   };
 
@@ -198,8 +209,10 @@ class JsonVisualizer extends Component {
     if (htmlString) {
       this.setState({ htmlTemplate: true }, () => {
         const element = getHtmlElement(this.htmlInput, 'htmlInput');
-        if (element) {
+        if (element && element.select) {
           element.select();
+        } else {
+          document.querySelector('#htmlInput').select();
         }
       });
     }
@@ -220,7 +233,9 @@ class JsonVisualizer extends Component {
   };
 
   render() {
-    const { result, htmlTemplate, htmlString } = this.state;
+    const {
+      result, htmlTemplate, htmlString, hasError,
+    } = this.state;
     return (
       <Row className="row">
         <Col className="col" span={10}>
@@ -250,10 +265,16 @@ class JsonVisualizer extends Component {
             <div className="content-wrapper">
               <Row type="flex">
                 <Col className="row-number"><RowNumber /></Col>
-                <Col className={`html-content ${htmlTemplate ? 'show' : 'hide'}`}>
-                  <TextArea id="htmlInput" ref={this.htmlInput} className="html-input" value={htmlString} />
-                </Col>
-                <Col className={`json-content ${htmlTemplate ? 'hide' : 'show'}`} onDoubleClick={this.showHtmlTemplate}>{result}</Col>
+                { hasError ? (
+                  <Col className="json-content"><pre>{result}</pre></Col>
+                ) : (
+                  <>
+                    <Col className={`html-content ${htmlTemplate ? 'show' : 'hide'}`}>
+                      <TextArea id="htmlInput" ref={this.htmlInput} className="html-input" value={htmlString} />
+                    </Col>
+                    <Col className={`json-content ${htmlTemplate ? 'hide' : 'show'}`} onDoubleClick={this.showHtmlTemplate}>{result}</Col>
+                  </>
+                ) }
               </Row>
             </div>
           </div>
