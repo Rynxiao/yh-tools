@@ -10,6 +10,7 @@ const webpackHotMiddleware = require('webpack-hot-middleware');
 
 const indexRouter = require('./routes/index');
 const apiRouter = require('./routes/api');
+const CONFIG = require('./build/config');
 
 const isDev = process.env.NODE_ENV === 'development';
 const app = express();
@@ -37,13 +38,15 @@ if (isDev) {
     publicPath: webpackConfig.output.publicPath,
     noInfo: true,
   }));
-
-  app.use('/', indexRouter);
 } else {
-  app.use('/', (req, res, next) => {
-    next();
-  });
+  app.use(webpackConfig.output.publicPath, express.static(path.join(__dirname, `./${CONFIG.DIR.DIST}`)));
+  app.set('views', path.join(__dirname, `./${CONFIG.DIR.DIST}/${CONFIG.DIR.VIEW}`));
+  // eslint-disable-next-line global-require
+  app.engine('html', require('ejs').renderFile);
+  app.set('view engine', 'html');
 }
+
+app.use('/', indexRouter);
 app.use('/api', apiRouter);
 
 // catch 404 and forward to error handler
