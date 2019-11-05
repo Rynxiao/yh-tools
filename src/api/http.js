@@ -9,7 +9,6 @@ axios.interceptors.request.use(
 axios.interceptors.response.use((response) => response, (error) => Promise.resolve(error.response));
 
 function checkStatus(response) {
-  console.log(`[client http] request result ${JSON.stringify(response)}`);
   // 如果http状态码正常，则直接返回数据
   if (response && (response.status === 200 || response.status === 304)) {
     return response;

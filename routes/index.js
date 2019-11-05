@@ -4,11 +4,16 @@ const { render } = require('../public/javascripts/render');
 const router = express.Router();
 
 router.get('*', async (req, res, next) => {
+  const url = req.originalUrl;
+  if (url.includes('api')) {
+    return next();
+  }
   try {
-    await render(res, 'index');
+    return await render(res, 'index');
   } catch (e) {
-    next(e);
+    return next(e);
   }
 });
+
 
 module.exports = router;
