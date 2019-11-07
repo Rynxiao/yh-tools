@@ -21,6 +21,10 @@ Using [Annie](https://github.com/iawia002/annie) to download resources, will dow
 brew install annie
 ```
 
+### Annie Downloader Flow
+
+![flow](./screenshot/annie-download-flow.png)
+
 - search list
 ![list](./screenshot/list.png)
 
